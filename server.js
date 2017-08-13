@@ -2,6 +2,7 @@ var serverJira = 'jira.atlassian.com';
 
 const http = require('http');
 const https = require('https');
+const cors = require('cors')
 
 var auth = {};
 
@@ -11,6 +12,7 @@ var express = require('express'),
 	bodyParser = require('body-parser');
 
 var app = express();
+app.use(cors());
 app.use(express.static(__dirname));
 app.use(require('cookie-parser')());
 app.use(bodyParser.urlencoded({
@@ -90,6 +92,64 @@ app.get('/issues/:query', function(req, res) {
 	});
 
 	request.end();
+});
+
+app.put('/issues', function(req, res) {
+	console.log(req.body);
+	
+	var newIssue = {
+		"fields": {
+			"project":
+			{ 
+				"key": "JSWSERVER"
+			},
+			"summary": "Test issue.",
+			"description": req.body.description,
+			"issuetype": {
+				"name": "Suggestion"
+			}
+		}
+	};
+	var postData = JSON.stringify(newIssue);
+	console.log(postData);
+	
+	var parametros = {
+		protocol: 'https:',
+		method: 'POST',
+		host: serverJira,
+		path: '/rest/api/2/issue/',
+		auth: ''
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	};	
+
+	var request = https.request(parametros, (respJira) => {
+		var dados = '';
+
+		console.log('Aqui o que deu ó: ' + respJira.statusCode);
+		
+		respJira.on('data', (d) => {
+			console.log('Recebi alguma coisa:' + d);
+			dados += d;
+		});
+
+		respJira.on('end', () => {
+			res.writeHead(200, {
+				'Content-Type': 'application/json',
+				'Access-Control-Allow-Origin': '*',
+			});
+
+			console.log('Terminei: ' + dados);
+			
+			res.end(dados);
+		});
+	});
+		
+	request.write(postData);
+	console.log('escrevido');	
+	request.end();
+	console.log('feito');
 });
 
 app.get('/config/:user', function(req, res) {
