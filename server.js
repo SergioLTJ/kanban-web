@@ -118,7 +118,6 @@ app.put('/issues', function(req, res) {
 		method: 'POST',
 		host: serverJira,
 		path: '/rest/api/2/issue/',
-		auth: ''
 		headers: {
 			'Content-Type': 'application/json'
 		}
